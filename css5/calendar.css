@@ -1,0 +1,128 @@
+#{
+	margin: 0px;
+	padding: 0px;
+}
+
+body{
+	font-size: 15px;
+	color: #708090;
+}
+
+th, td{
+	width: 130px;
+	
+}
+td{
+	height: 80px;
+	
+}
+.gray{
+	background-color: lightgray;
+}
+.red{
+    color: red;
+}
+
+div.webntitle{
+	font-weight: bolder;
+	font-family: "chalkboard";
+	font-size: 40px;
+	color: #4682B4;
+	text-align: center;
+}
+
+div#today{
+	float: right;
+	margin-right: 20px;
+	font-size: 20px;
+	color: black;
+	font-weight: bolder;
+	font-style: italic;
+}
+
+a{
+	text-decoration: none;
+	color: blue;
+	margin-left: 10px;
+}
+a:hover{
+	font-weight: bold;
+}
+
+div.login{
+	margin-top: 50px;
+	margin-left: 20px;
+	border-bottom: 2px solid #008CBA;
+}
+
+div.changeMonth{
+	margin-bottom: 20px;
+}
+
+th{
+	color: #4682B4;
+}
+
+span#MonthName{
+	font-size: 25px;
+	font-weight: "American Typewriter";
+	margin-left: 30%;
+}
+
+div.login, div#name{
+	color: #008CBA;
+	/*border-bottom: 2px solid #008CBA;*/
+	/*border-bottom-color: #008CBA;
+	border-bottom-width: 2px;*/
+}
+
+div#name{
+	font-size: 20px;
+/*	//float: right;*/
+	display: inline;
+}
+
+ul li: hover{
+	background: #F0F8FF;
+}
+
+div.login button, div.add button{
+	background-color: #008CBA;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+
+div#contlog{
+	width: 200px;
+	height: 50px;
+	word-break:break-all;
+	overflow:auto;
+}
+
+div.add{
+	float: right;
+	margin-top: 40px;
+	margin-left: 30px;
+}
+
+ul{
+	list-style-type: none;
+}
+
+div.calendar{
+	margin-left: 20px;
+	margin-bottom: 150px;
+}
+span#titlelog{
+	font-size: 25px;
+	color: #4682B4;
+}
+span#typelog{
+	color: black;
+	font-size: 10px;
+}

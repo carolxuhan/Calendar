@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Calendar</title>
+	
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="./css5/calendar.css" type="text/css"/>
+	<link rel="stylesheet" href="./css5/dialog.css" type="text/css"/>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js" type="text/javascript"></script>
+  	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js"></script>
+</head>
+<body>
+<div class="webntitle">Calendar</div>
+<div id="today">
+	<!--Add the date for today-->
+</div>
+<div class="login">
+	Username: <input type="text" id="user" placeholder="Username"></input>
+	Password: <input type="password" id="password" placeholder="Password"></input>
+	<button id="loginBtn">Log In</button>
+	<button id="signup" onclick="location.href='signup5.php'">Sign Up</button><br/>
+	<span id="error" class="error"></span>
+</div>
+<div id="name"></div>
+<a id="logout" href="logout5.php">Log out</a><br/>
+
+<div class="add">
+	<button id="addEvent">Add Event</button>
+	<div id="dialog">
+		<div><strong>Title: </strong><input type="text" id="title" placeholder="Event Title"></input></div>
+		Date: <input type="date" id="date"></input><br/>
+		Start: <input type="time" id="start"></input><br/>
+		End: <input type="time" id="end"></input><br/>
+		<textarea rows="3" cols="30" id="content" placeholder="Content..."></textarea><br/>
+		<select id="type">
+			<option value="General">General</option>
+			<option value="Study">Study</option>
+			<option value="Bussiness">Bussiness</option>
+			<option value="Entertainment">Entertaiment</option>
+		</select>
+		<input type="hidden" id="token"></input>
+		<button id="eventsubmit" onclick=eventsubmit()>submit</button>
+		<button id="hideform">close</button>
+	</div>
+</div>
+<div class="changeMonth">
+	<span id = "MonthName">  Month </span>
+	<!--Add the buttons for the previous and the next months-->
+	<button id="PrevMonth"><</button>
+	<button id="ThisMonth">Today</button>
+	<button id="NextMonth">></button>
+</div>
+<div class="calendar" id = "container">
+	<table id="dates" class = "table" border="1">
+		<tr>
+			<th>Monday</th>
+			<th>Tuesday</th>
+			<th>Wednesday</th>
+			<th>Thursday</th>
+			<th>Friday</th>
+			<th>Saturday</th>
+			<th>Sunday</th>
+		</tr>
+		<!--Add the content of the day-->
+	</table>
+	<div id="eventdialog">
+		<button id="hideEvent">HIDE</button><br>
+		<span id="titlelog"></span>
+		<span id="typelog"></span><br>
+		<span><b>Date: </b></span>
+		<span id="datelog"></span><br>
+		<span><b>Start: </b></span>
+		<span id="startlog"></span><br>
+		<span><b>End: </b></span>
+		<span id="endlog"></span><br>
+		<span><b>Content: </b></span>
+		<div id="contlog"></div>
+		<input type="hidden" id="idlog"></input>
+		<input type="hidden" id="tokenlog"></input>
+		<button id="delete">Delete</button>
+		<button id="edit">Edit</button>
+	</div>
+	<div id="editevent">
+		<div><strong>Title: </strong><input type="text" id="titleedit"></input></div>
+		Date: <input type="date" id="dateedit"></input><br/>
+		Start: <input type="time" id="startedit"></input><br/>
+		End: <input type="time" id="endedit"></input><br/>
+		<textarea rows="3" cols="30" id="contentedit"></textarea><br/>
+		<input type="hidden" id="tokenedit"></input>
+		<select id="typeedit">
+			<option value="General">General</option>
+			<option value="Study">Study</option>
+			<option value="Bussiness">Bussiness</option>
+			<option value="Entertainment">Entertaiment</option>
+		</select>
+		<input type="hidden", id="eventidedit"></input>
+		<button id="editsubmit">submit</button>
+		<button id="editcancel">close</button>
+	</div>
+</div>
+
+<script type="text/javascript">
+	//alert("aaa");
+	//window.token;
+
+	$(document).ready(function(){
+		//var user = <?php echo $_SESSION['user'] ?>;
+		//alert("start");
+		$("a#logout").hide();
+		$("button#addEvent").hide();
+		$("div#eventdialog").hide();
+		//$("div#dialog").hide();
+
+		var today = new Date();
+		document.getElementById("today").innerHTML = "<strong>"+today.toLocaleDateString();+"</strong>"
+
+		//var user = '<?php echo $_SESSION["user"] ?>'
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("GET", "islogin.php", true);
+		xmlHttp.addEventListener("load",function(event){
+			//alert("yeah");
+			//alert(event.target.responseText);
+			var msg = JSON.parse(event.target.responseText);
+			if(msg.success){
+				$("div.login").hide();
+				$("a#logout").show();
+				$("button#addEvent").show();
+				document.getElementById("user").innerHTML = msg.username;
+			}
+		}, false);
+		xmlHttp.send(null);
+		//$("button#loginBtn").click(login_into_account(event));
+		//alert("ready");
+	});
+
+
+	function login_into_account(event){
+		//alert("login");
+		var username = document.getElementById("user").value;
+		var password = document.getElementById("password").value;
+
+		//alert(username);
+		//Make a url-encoded string for passing POST data
+		var dataString = "user="+encodeURIComponent(username)+"&password="+encodeURIComponent(password);
+
+		//alert(dataString);
+		//Send data
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("POST","login5.php",true);
+		xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+		xmlHttp.addEventListener("load", function(event){
+			//alert("login");
+			//alert(event.target.responseText);
+			var jsonData = JSON.parse(event.target.responseText); // parse the JSON into a JavaScript object
+			if(jsonData.success){  // in PHP, this was the "success" key in the associative array; in JavaScript, it's the .success property of jsonData
+				//alert("You've been Logged In!");
+				$("div.login").hide();
+				$("a#logout").show();
+				$("button#addEvent").show();
+				document.getElementById("name").innerHTML = jsonData.username;
+				document.getElementById("token").value = jsonData.token;
+
+				//document.getElementById("name").style.border-bottom = "2px solid #008CBA";
+
+				xmlHttp2 = new XMLHttpRequest();
+				xmlHttp2.open("GET", "eventBymonth.php", true);
+
+				//alert("You've been Logged In!");
+
+				xmlHttp2.addEventListener("load", function(event){
+					//alert("events");
+					var jsonData2 = JSON.parse(event.target.responseText);
+					//alert(jsonData2.success);
+					if (jsonData2.success == 1) {
+						eventmonth = jsonData2.event;
+						//alert(eventmonth['ele0']);
+
+						if(jsonData2.judge){
+							eventmonth["judge"] = 1;
+							//alert(jsonData2.judge);
+						}
+						else{
+							eventmonth["judge"] = 0;
+						}
+
+						currentMonth = new Month(current_date.getFullYear(), current_date.getMonth()); // back to month now
+						removeDates();
+						displayDates();
+						updateMonth();
+
+
+						//alert(eventmonth);
+					}else if(jsonData2.success == -1){
+						alert(jsonData2.error);
+					}
+				}, false);
+
+				xmlHttp2.send(null);
+			}else{
+				//alert("You were not logged in.  "+jsonData.msg);
+				document.getElementById("error").innerHTML = jsonData.msg;
+			}
+		}, false);
+
+		//alert("yeah");
+		xmlHttp.send(dataString);
+	}
+
+	// function showDialog(props){
+	// 	//alert("ready");
+	// 	document.getElementById("dialog").style.left = props.left + 150 + 'px';
+	// 	document.getElementById("dialog").style.top = props.top - 100 + 'px';
+	// 	document.getElementById("dialog").style.visibility = "visible";
+	// }
+
+	// function hideDialog(event){
+	// 	document.getElementById("dialog").style.visibility = "hidden";
+	// 	document.getElementById("dialog").style.overflow = "hidden";
+	// }
+	
+	function eventsubmit(){
+		//$("#dialog").close();
+		//alert("yeah");
+
+		//var token = null;
+		// alert(token);
+		var title = document.getElementById("title").value;
+		var date = document.getElementById("date").value;
+		var start = document.getElementById("start").value;
+		var end = document.getElementById("end").value;
+		var content = document.getElementById("content").value;
+		var token = document.getElementById("token").value;
+		var type = document.getElementById("type").value;
+		// var xmltoken = new XMLHttpRequest();
+		// xmltoken.open("GET", "sessionData.php", true);
+
+		// xmltoken.addEventListener("load", function(event){
+		// 	var jsonData = JSON.parse(event.target.responseText);
+		// 	window.token = jsonData.token;
+		// 	//alert(jsonData.token);
+
+		// }, false);
+		// xmltoken.send(null);
+
+
+		var dataString = "title="+encodeURIComponent(title)+"&content="+encodeURIComponent(content)+"&date="+encodeURIComponent(date)+"&start="+encodeURIComponent(start)+"&end="+encodeURIComponent(end)+"&type="+encodeURIComponent(type)+"&token="+encodeURIComponent(token);
+		//var dataString = "token="+encodeURIComponent(token);
+		//alert(dataString);
+
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("POST","addEvent.php",true);
+		xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+		xmlHttp.addEventListener("load", function(event){
+			//alert("login");
+			//alert(event.target.responseText);
+			var jsonData = JSON.parse(event.target.responseText); // parse the JSON into a JavaScript object
+			//alert(jsonData);
+			if(jsonData.success){  // in PHP, this was the "success" key in the associative array; in JavaScript, it's the .success property of jsonData
+				alert("success");
+				document.getElementById("dialog").style.display = "none";
+				
+				xmlHttp2 = new XMLHttpRequest();
+				xmlHttp2.open("GET", "eventBymonth.php", true);
+
+				//alert("You've been Logged In!");
+
+				xmlHttp2.addEventListener("load", function(event){
+					//alert("events");
+					var jsonData2 = JSON.parse(event.target.responseText);
+					//alert(jsonData2.success);
+					if (jsonData2.success == 1) {
+						eventmonth = jsonData2.event;
+						//alert(eventmonth['ele0']);
+
+						if(jsonData2.judge){
+							eventmonth["judge"] = 1;
+							//alert(jsonData2.judge);
+						}
+						else{
+							eventmonth["judge"] = 0;
+						}
+
+						currentMonth = new Month(current_date.getFullYear(), current_date.getMonth()); // back to month now
+						removeDates();
+						displayDates();
+						updateMonth();
+
+
+						//alert(eventmonth);
+					}else if(jsonData2.success == -1){
+						alert(jsonData2.error);
+					}
+				}, false);
+
+				xmlHttp2.send(null);
+			}else{
+				alert(jsonData.message);
+				// document.getElementById("error").innerHTML = jsonData.msg;
+			}
+		}, false);
+
+		xmlHttp.send(dataString);
+	}
+
+	function editevent(event){
+		//alert(1);
+		var title = document.getElementById("titlelog").textContent;
+		var type = document.getElementById("typelog").textContent;
+		var date = document.getElementById("datelog").textContent;
+		var start = document.getElementById("startlog").textContent;
+		var end = document.getElementById("endlog").textContent;
+		var content = document.getElementById("contlog").textContent;
+		var eventid = document.getElementById("idlog").value;
+		var token = document.getElementById("token").value;
+		//alert(title);
+
+		document.getElementById("eventdialog").style.display = "none";
+
+		document.getElementById("titleedit").value = title;
+		document.getElementById("startedit").value = start;
+		document.getElementById("endedit").value = end;
+		document.getElementById("contentedit").value = content;
+		document.getElementById("dateedit").value = date;
+		document.getElementById("tokenedit").value = token;
+		document.getElementById("eventidedit").value = eventid;
+		//alert(eventid);
+
+		props = event.target.getBoundingClientRect();
+		document.getElementById("editevent").style.left = props.left + 500 + 'px';
+		document.getElementById("editevent").style.top = props.top + 500 +'px';
+		document.getElementById("editevent").style.display = "block";
+	}
+
+	function submitedit(event){
+		//alert(1)
+		var title = document.getElementById("titleedit").value;
+		var type = document.getElementById("typeedit").value;
+		var date = document.getElementById("dateedit").value;
+		var start = document.getElementById("startedit").value;
+		var end = document.getElementById("endedit").value;
+		var content = document.getElementById("contentedit").value;
+		var eventid = document.getElementById("eventidedit").value;
+		var token = document.getElementById("token").value;
+		//alert(token);
+
+
+		var dataString = "title="+encodeURIComponent(title)+"&type="+encodeURIComponent(type)+"&content="+encodeURIComponent(content)+"&date="+encodeURIComponent(date)+"&start="+encodeURIComponent(start)+"&end="+encodeURIComponent(end)+"&eventid="+encodeURIComponent(eventid)+"&token="+encodeURIComponent(token);
+		//alert(dataString);
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("POST","editEvent.php",true);
+		xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+		xmlHttp.addEventListener("load", function(event){
+			//alert("login");
+			//alert(event.target.responseText);
+			var jsonData = JSON.parse(event.target.responseText); // parse the JSON into a JavaScript object
+			//alert(jsonData.success);
+			if(jsonData.success){
+				alert("success");
+				document.getElementById("editevent").style.display = "none";
+				
+				xmlHttp2 = new XMLHttpRequest();
+				xmlHttp2.open("GET", "eventBymonth.php", true);
+
+				//alert("You've been Logged In!");
+
+				xmlHttp2.addEventListener("load", function(event){
+					//alert("events");
+					var jsonData2 = JSON.parse(event.target.responseText);
+					//alert(jsonData2.success);
+					if (jsonData2.success == 1) {
+						eventmonth = jsonData2.event;
+						//alert(eventmonth['ele0']);
+
+						if(jsonData2.judge){
+							eventmonth["judge"] = 1;
+							//alert(jsonData2.judge);
+						}
+						else{
+							eventmonth["judge"] = 0;
+						}
+
+						currentMonth = new Month(current_date.getFullYear(), current_date.getMonth()); // back to month now
+						removeDates();
+						displayDates();
+						updateMonth();
+
+
+						//alert(eventmonth);
+					}else if(jsonData2.success == -1){
+						alert(jsonData2.error);
+					}
+				}, false);
+
+				xmlHttp2.send(null);
+			}else{
+				// alert("fail");
+				alert(jsonData.message);
+				// document.getElementById("error").innerHTML = jsonData.msg;
+			}
+		}, false);
+		xmlHttp.send(dataString);
+	}
+
+	//alert("fff");
+	document.getElementById("loginBtn").addEventListener("click", login_into_account, false);
+
+	document.getElementById("edit").addEventListener("click", editevent, false);
+
+	document.getElementById("addEvent").addEventListener("click", function(event){
+		props = event.target.getBoundingClientRect();
+		//document.getElementById("dialog").show();
+		document.getElementById("dialog").style.left = props.left - 150 + 'px';
+		document.getElementById("dialog").style.top = props.top + 50 + 'px';
+		document.getElementById("dialog").style.display = "block";
+	}, false);
+	document.getElementById("hideform").addEventListener("click", function(){
+		document.getElementById("dialog").style.display = "none";
+	}, false);
+	document.getElementById("hideEvent").addEventListener("click", function(){
+		document.getElementById("eventdialog").style.display = "none";
+	}, false);
+
+	document.getElementById("editsubmit").addEventListener("click", submitedit, false);
+	document.getElementById("editcancel").addEventListener("click", function(){
+		document.getElementById("editevent").style.display = "none";
+	}, false);
+</script>
+<script type="text/javascript">
+	function eventDelete(){
+		var id = document.getElementById("idlog").value;
+		//var token = document.getElementById("tokenlog").value;
+
+		var dataString = "&id="+encodeURIComponent(id);
+		
+		var xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("POST","deleteEvent.php",true);
+		xmlHttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+		xmlHttp.addEventListener("load", function(event){
+			//alert("login");
+			//alert(event.target.responseText);
+			var jsonData = JSON.parse(event.target.responseText); // parse the JSON into a JavaScript object
+			//alert(jsonData);
+			if(jsonData.success==true){  // in PHP, this was the "success" key in the associative array; in JavaScript, it's the .success property of jsonData
+				$("div#eventdialog").hide();
+				alert("success");
+				xmlHttp2 = new XMLHttpRequest();
+				xmlHttp2.open("GET", "eventBymonth.php", true);
+
+				//alert("You've been Logged In!");
+
+				xmlHttp2.addEventListener("load", function(event){
+					//alert("events");
+					var jsonData2 = JSON.parse(event.target.responseText);
+					//alert(jsonData2.success);
+					if (jsonData2.success == 1) {
+						eventmonth = jsonData2.event;
+						//alert(eventmonth['ele0']);
+
+						if(jsonData2.judge){
+							eventmonth["judge"] = 1;
+							//alert(jsonData2.judge);
+						}
+						else{
+							eventmonth["judge"] = 0;
+						}
+
+						currentMonth = new Month(current_date.getFullYear(), current_date.getMonth()); // back to month now
+						removeDates();
+						displayDates();
+						updateMonth();
+
+
+						//alert(eventmonth);
+					}else if(jsonData2.success == -1){
+						alert(jsonData2.error);
+					}
+				}, false);
+
+				xmlHttp2.send(null);
+			}else{
+				alert(jsonData.message);
+				// document.getElementById("error").innerHTML = jsonData.msg;
+			}
+		}, false);
+		
+		xmlHttp.send(dataString);
+	}
+
+	document.getElementById("delete").addEventListener("click", eventDelete, false);
+</script>
+<script src="calendarHelper.js"></script>
+<script src = "calendar.js"></script>
+</body>
+</html>
